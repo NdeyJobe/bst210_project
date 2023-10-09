@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r}
+# Import data
+data <- read_excel("P_Data_Extract_From_Sustainable_Development_Goals_(SDGs) (3).xlsx")
+View(data)
+```
+
+```{r}
+# Data wrangle
+
+```
+

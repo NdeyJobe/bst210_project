@@ -1,0 +1,295 @@
+---
+title: ""
+format: pdf
+---
+
+Group #28 
+
+**Group: Mortality Explorers** 
+
+**Group Members: Ndey Isatou Jobe (SM Biostatistics), Khondoker Nazmoon Nabi ( PhD Biostatistics), Bennet Cho (MPH Clinical Effectiveness Program)**
+
+HW #4: Project Check-In
+
+10/8/23
+
+We have read and attest to the statement in the BST 210 HW assignment.
+
+## Q1.
+
+\"Under 5 mortality\". Using the World Bank database, we will look at associations between CO2 emissions and mortality in children under 5 years of age controlling for socioeconomic factors. 
+
+## Q2.
+
+Data is sourced from the World Bank DataBank. Data is collected on all countries of the world, on yearly CO2 emissions, yearly under 5 mortality rate, and other variables to account for confounding and effect measurement.
+
+## Q3.
+
+-   What is the relationship between a country\'s CO2 emissions and under-5 mortality rates?
+
+-   Is there an association between higher income and lower under-5 mortality rates?
+
+## Q4.
+
+Does the relationship between CO2 emissions and under-5 mortality vary across different countries?
+
+## Q5.
+
+Under-5 mortality (Continuous)
+
+## Q6.
+
+-   Data Preprocessing:
+
+Clean and preprocess the data to investigate missing values, outliers, and inconsistencies.
+
+-   Data Exploration:
+
+Conduct exploratory data analysis (EDA) to understand the distribution of our variables and identify potential patterns or outliers.
+
+-    Hypothesis Formulation:
+
+Formulate our hypotheses that higher CO2 emissions are associated with higher under-5 mortality rates, and that higher income is associated with lower mortality rates.
+
+-   Correlation Analysis:
+
+Begin plotting scatter plots to assess individual relationships and by calculating correlation coefficients between CO2 emissions, income, and under-5 mortality rates. Use statistical tests to assess the significance of these correlations.
+
+-   Regression Analysis:
+
+Perform regression analysis to examine the relationships more thoroughly. Use multiple regression to account for the influence of income while assessing the relationship between CO2 emissions and mortality rates. 
+
+-   Interpret the coefficients (β1 and β2) and assess their statistical significance:
+
+Interpret the results of our regression analysis, focusing on the relationship between CO2 emissions, income, and under-5 mortality rates. Discuss whether the relationships are statistically significant and the magnitude of their effects.
+
+-   Stratified Analysis:
+
+investigate the relationship across regions, consider stratified analysis. Analyse the relationship between CO2 emissions, income, and mortality rates separately for different regions or groups of countries.
+
+-   Interaction Effects:
+
+Assess whether there are interaction effects between CO2 emissions and income that influence mortality rates differently in various regions. Include interaction terms in our regression model if appropriate.
+
+-   Model Evaluation:
+
+Evaluate the goodness of fit of your regression models, such as adjusted R-squared, AIC, MSE, and check for model assumptions, including linearity, normality of residuals, and homoscedasticity.
+
+-    Interpretation of Findings:
+
+Interpret the results of your regression analysis, focusing on the relationship between CO2 emissions, income, and under-5 mortality rates. Discuss whether the relationships are statistically significant and the magnitude of their effects.
+
+-   Regional Comparisons:
+
+Compare the findings across regions to determine if the relationships hold consistently or if there are regional variations.Q7.
+
+## Q7.
+
+Our biggest challenge foreseen is how to collectively agree on the best model, as modelling is art and subjective
+
+## Q8.
+
+Boston Children\'s Hospital Global Health research team: <https://www.childrenshospital.org/programs/global-health/meet-our-team>
+
+## Q9.
+
+We will be using the R software package to complete this task.
+
+## Q10.
+
+```{r, eval=TRUE, echo=FALSE}
+#Load packages
+library(readxl)
+library(dplyr)
+```
+
+# Data Exploration
+
+```{r, eval=TRUE, echo=FALSE}
+# Load data
+data0 <- read_xlsx("P_Data_Extract_From_Sustainable_Development_Goals_(SDGs) (3) (1).xlsx")
+attach(data0)
+View(data0)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+# Data Wrangling
+data0 <- data0 |> rename(female_employment = `Contributing family workers, female (% of female employment) (modeled ILO estimate) [SL.FAM.WORK.FE.ZS]`)
+
+data0 <- data0 |> rename(male_employment = `Contributing family workers, male (% of male employment) (modeled ILO estimate) [SL.FAM.WORK.MA.ZS]`)
+
+
+```
+
+```{r, eval=TRUE, echo=FALSE}
+#Data exploration
+# View the structure of the dataset
+str(data0)
+
+# Summary statistics
+summary(data0)
+```
+
+## Data Visualization
+
+```{r, eval=TRUE, echo=FALSE}
+hist(`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+hist(log(`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`))
+```
+
+```{r, eval=TRUE, echo=FALSE}
+hist(`CO2 emissions (kg per PPP $ of GDP) [EN.ATM.CO2E.PP.GD]`)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+hist(`CO2 emissions (metric tons per capita) [EN.ATM.CO2E.PC]`)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+hist(`GDP per capita (current US$) [NY.GDP.PCAP.CD]`)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+# Data Visualization
+scatter.smooth(data0$`CO2 emissions (kg per PPP $ of GDP) [EN.ATM.CO2E.PP.GD]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`CO2 emissions (metric tons per capita) [EN.ATM.CO2E.PC]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`GDP per capita (current US$) [NY.GDP.PCAP.CD]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`Compulsory education, duration (years) [SE.COM.DURS]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`Prevalence of current tobacco use, males (% of male adults) [SH.PRV.SMOK.MA]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`Prevalence of current tobacco use, females (% of female adults) [SH.PRV.SMOK.FE]`, data0$`Mortality rate, under-5, male (per 1,000 live births) [SH.DYN.MORT.MA]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`People practicing open defecation (% of population) [SH.STA.ODFC.ZS]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`Prevalence of moderate or severe food insecurity in the population (%) [SN.ITK.MSFI.ZS]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$female_employment, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$male_employment, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+scatter.smooth(data0$`People using at least basic drinking water services (% of population) [SH.H2O.BASW.ZS]`, data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+```
+
+## Q11.
+
+Project Attestation:  No member of this group is using these data or same/similar questions in any other course or course project, at HSPH.
+
+## APPENDIX
+
+```{r, eval=FALSE, echo=TRUE}
+#Load packages
+library(readxl)
+#Load packages
+library(readxl)
+
+# Load data
+data0 <- read_xlsx("P_Data_Extract_From_Sustainable_Development_Goals_(SDGs) 
+                   (3) (1).xlsx")
+attach(data0)
+
+#Data exploration
+# View the structure of the dataset
+str(data0)
+
+# Summary statistics
+summary(data0)
+
+# Data Visualizations
+hist(`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`)
+
+hist(log(`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`))
+
+hist(`CO2 emissions (kg per PPP $ of GDP) [EN.ATM.CO2E.PP.GD]`)
+
+hist(`CO2 emissions (metric tons per capita) [EN.ATM.CO2E.PC]`)
+
+hist(`GDP per capita (current US$) [NY.GDP.PCAP.CD]`)
+
+scatter.smooth(data0$`CO2 emissions (kg per PPP $ of GDP) 
+               [EN.ATM.CO2E.PP.GD]`, data0$`Mortality rate, 
+               under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+
+scatter.smooth(data0$`CO2 emissions (metric tons per capita) [EN.ATM.CO2E.PC]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`GDP per capita (current US$) [NY.GDP.PCAP.CD]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+
+scatter.smooth(data0$`Compulsory education, duration (years) [SE.COM.DURS]`, 
+               data0$`Mortality rate, 
+               under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`Prevalence of current tobacco use, 
+               males (% of male adults) [SH.PRV.SMOK.MA]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`Prevalence of current tobacco use,
+               females (% of female adults) [SH.PRV.SMOK.FE]`, 
+               data0$`Mortality rate, under-5, male (per 1,000 live births) 
+               [SH.DYN.MORT.MA]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`People practicing open defecation 
+               (% of population) [SH.STA.ODFC.ZS]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`Prevalence of moderate or severe 
+               food insecurity in the population (%) 
+               [SN.ITK.MSFI.ZS]`, data0$`Mortality rate, 
+               under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`Contributing family workers, female
+               (% of female employment) (modeled ILO estimate) [SL.FAM.WORK.FE.ZS]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`Contributing family workers, 
+               male (% of male employment) (modeled ILO estimate) [SL.FAM.WORK.MA.ZS]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) [SH.DYN.MORT]`, 
+               
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+scatter.smooth(data0$`People using at least basic drinking water services 
+               (% of population) [SH.H2O.BASW.ZS]`, 
+               data0$`Mortality rate, under-5 (per 1,000 live births) 
+               [SH.DYN.MORT]`, 
+               ylab = "Under 5 Mortality Rate per 1,000 Live Births")
+
+
+```
