@@ -7,8 +7,6 @@ format: html
 # Load packages
 library(tidyverse)
 library(stringr)
-# Ordinal regression packages
-library(VGAM)
 
 # Install the GGally package (if not already installed)
 #install.packages("GGally")
@@ -54,9 +52,6 @@ labels <- c("Low", "Moderate", "High", "Very High")
 # Create the categorical variable in your data frame
 world_data <- world_data %>%
   mutate(pm_category = cut(PM, breaks = breaks, labels = labels, include.lowest = TRUE))
-# Display the categorization
-print(world_data)
-
 ```
 
 #### Region categorized Data
@@ -141,54 +136,15 @@ world_data <- world_data %>%
   mutate(Mortality_Category = ifelse(Mortality > 25, "High", "Low"))
 ```
 
-# Exploratory data analysis
-
-```{r}
-# Step1: Missing data
-# Check for missing values and handle them
-data_backup <- world_data
-world_data <- na.omit(world_data)
-View(world_data)
-# Removes rows with missing values
-colnames(world_data)
-# Step 2: Perform regression analysis and variable selection
-# Fit a linear regression model to assess the effect of CO2 on under-five mortality
-# Add more predictors by including them in the formula
-
-final_model <- lm(Mortality_Category ~ pm_category, data = world_data)
-
-# Summarize the final model
-summary(final_model)
-
-# Repeat this process for different combinations of variables until you find the best model for your research question.
-
-# Sort the data by CO2 in descending order and select the top N countries
-top_countries <- world_data %>%
-  arrange(desc(GDP)) %>%
-  head(217)  # Replace N with the number of top countries you want to select
-
-# View the list of countries with the highest CO2 emissions
-print(top_countries$Country)
-
-
-# Create a scatter plot with multiple geoms (one for each predictor variable)
-ggplot(data = world_data) +
-  geom_point(aes(x = Mortality, y = PM), color = "blue") 
-
- 
-```
-
 # Final Data
 
 ```{r}
 # Filter the data to keep only countries with GDP greater than 3400
 world_data <- world_data %>% filter(GDP < 33500)
-world_data
+
+# Removes rows with missing values
+world_data <- na.omit(world_data)
 
 # Save your data frame to a CSV file
 write.csv(world_data, "final_bst210_project_data.csv", row.names = FALSE)
-data <- read_csv("final_bst210_project_data.csv")
-
 ```
-
-# 
