@@ -4,13 +4,156 @@ format: html
 ---
 
 ```{r}
-# Import data
-data <- read_excel("P_Data_Extract_From_Sustainable_Development_Goals_(SDGs) (3).xlsx")
-View(data)
+# Load packages
+library(tidyverse)
+library(stringr)
+
 ```
 
 ```{r}
+# Import data
+data <- read_csv("Final_clean_data.csv")
+```
+
+# Data Wrangling
+
+```{r}
 # Data wrangle
+# Get the column names
+column_names <- colnames(data)
+world_data <- data |> slice(1:217)
+
+# Assuming your dataset is named 'df' and the column is 'ColumnName'
+world_data$Country <- str_to_upper(world_data$Country)
+#world_data$Country
+
+# Create a new column named "Region" in the dataset
+world_data$Region <- NA
+#colnames(world_data)
+
+# List of East Asia and Pacific countries
+east_asia_pacific_countries <- c("AMERICAN SAMOA", "AUSTRALIA", "BRUNEI DARUSSALAM", "CAMBODIA", "CHINA", "FIJI", "FRENCH POLYNESIA", "GUAM", "HONG KONG SAR, CHINA", "INDONESIA", "JAPAN", "KIRIBATI", "KOREA, DEM. PEOPLE'S REP.", "KOREA, REP.", "LAO PDR", "MACAO SAR, CHINA", "MALAYSIA", "MARSHALL ISLANDS", "MICRONESIA, FED. STS.", "MONGOLIA", "MYANMAR", "NAURU", "NEW CALEDONIA", "NEW ZEALAND", "NORTHERN MARIANA ISLANDS", "PALAU", "PAPUA NEW GUINEA", "PHILIPPINES", "SAMOA", "SINGAPORE", "SOLOMON ISLANDS", "THAILAND", "TIMOR-LESTE", "TONGA", "TUVALU", "VANUATU", "VIET NAM")
+# Assign the "East Asia and Pacific" region to the specified countries
+world_data$Region[world_data$Country %in% east_asia_pacific_countries] <- "East Asia and Pacific"
+
+# List of Europe and Central Asia countries
+europe_central_asia_countries <- c("ALBANIA", "ANDORRA", "ARMENIA", "AUSTRIA", "AZERBAIJAN", "BELARUS", "BELGIUM", "BOSNIA AND HERZEGOVINA", "BULGARIA", "CHANNEL ISLANDS", "CROATIA", "CYPRUS", "CZECHIA", "DENMARK", "ESTONIA", "FAROE ISLANDS", "FINLAND", "FRANCE", "GEORGIA", "GERMANY", "GIBRALTAR", "GREECE", "GREENLAND", "HUNGARY", "ICELAND", "IRELAND", "ISLE OF MAN", "ITALY", "KAZAKHSTAN", "KOSOVO", "KYRGYZ REPUBLIC", "LATVIA", "LIECHTENSTEIN", "LITHUANIA", "LUXEMBOURG", "MOLDOVA", "MONACO", "MONTENEGRO", "NETHERLANDS", "NORTH MACEDONIA", "NORWAY", "POLAND", "PORTUGAL", "ROMANIA", "RUSSIAN FEDERATION", "SAN MARINO", "SERBIA", "SLOVAK REPUBLIC", "SLOVENIA", "SPAIN", "SWEDEN", "SWITZERLAND", "TAJIKISTAN", "TURKIYE", "TURKMENISTAN", "UKRAINE", "UNITED KINGDOM", "UZBEKISTAN")
+# Assign the "Europe and Central Asia" region to the specified countries
+world_data$Region[world_data$Country %in% europe_central_asia_countries] <- "Europe and Central Asia"
+
+
+# List of Latin America and Caribbean countries
+latin_america_caribbean_countries <- c(
+  "ANTIGUA AND BARBUDA", "ARGENTINA", "ARUBA", "BAHAMAS, THE", "BARBADOS", "BELIZE", "BOLIVIA", "BRAZIL", "BRITISH VIRGIN ISLANDS",
+  "CAYMAN ISLANDS", "CHILE", "COLOMBIA", "COSTA RICA", "CUBA", "CURACAO", "DOMINICA", "DOMINICAN REPUBLIC", "ECUADOR", "EL SALVADOR",
+  "GRENADA", "GUATEMALA", "GUYANA", "HAITI", "HONDURAS", "JAMAICA", "MEXICO", "NICARAGUA", "PANAMA", "PARAGUAY", "PERU", "PUERTO RICO",
+  "SINT MAARTEN (DUTCH PART)", "ST. KITTS AND NEVIS", "ST. LUCIA", "ST. MARTIN (FRENCH PART)", "ST. VINCENT AND THE GRENADINES",
+  "SURINAME", "TRINIDAD AND TOBAGO", "TURKS AND CAICOS ISLANDS", "URUGUAY", "VENEZUELA, RB", "VIRGIN ISLANDS (U.S.)"
+)
+# Assign the "Latin America and Caribbean" region to the specified countries
+world_data$Region[world_data$Country %in% latin_america_caribbean_countries] <- "Latin America and Caribbean"
+
+
+# List of Middle East and North Africa countries
+middle_east_north_africa_countries <- c(
+  "ALGERIA", "BAHRAIN", "DJIBOUTI", "EGYPT, ARAB REP.", "IRAN, ISLAMIC REP.", "IRAQ", "ISRAEL", "JORDAN", "KUWAIT", "LEBANON",
+  "LIBYA", "MALTA", "MOROCCO", "OMAN", "QATAR", "SAUDI ARABIA", "SYRIAN ARAB REPUBLIC", "TUNISIA", "UNITED ARAB EMIRATES",
+  "WEST BANK AND GAZA", "YEMEN, REP."
+)
+# Assign the "Middle East and North Africa" region to the specified countries
+world_data$Region[world_data$Country %in% middle_east_north_africa_countries] <- "Middle East and North Africa"
+
+# List of North American countries
+north_american_countries <- c("BERMUDA", "CANADA", "UNITED STATES")
+# Assign the "North America" region to the specified countries
+world_data$Region[world_data$Country %in% north_american_countries] <- "North America"
+
+
+# List of South Asian countries
+south_asian_countries <- c("AFGHANISTAN", "BANGLADESH", "BHUTAN", "INDIA", "MALDIVES", "NEPAL", "PAKISTAN", "SRI LANKA")
+# Assign the "South Asia" region to the specified countries
+world_data$Region[world_data$Country %in% south_asian_countries] <- "South Asia"
+
+
+
+sub_saharan_africa_countries <- c(
+  "ANGOLA", "BENIN", "BOTSWANA", "BURKINA FASO", "BURUNDI", "CABO VERDE", "CAMEROON", "CENTRAL AFRICAN REPUBLIC",
+  "CHAD", "COMOROS", "CONGO, DEM. REP.", "CONGO, REP.", "COTE D'IVOIRE", "EQUATORIAL GUINEA", "ERITREA", "ESWATINI",
+  "ETHIOPIA", "GABON", "GAMBIA, THE", "GHANA", "GUINEA", "GUINEA-BISSAU", "KENYA", "LESOTHO", "LIBERIA", "MADAGASCAR",
+  "MALAWI", "MALI", "MAURITANIA", "MAURITIUS", "MOZAMBIQUE", "NAMIBIA", "NIGER", "NIGERIA", "RWANDA", "SAO TOME AND PRINCIPE",
+  "SENEGAL", "SEYCHELLES", "SIERRA LEONE", "SOMALIA", "SOUTH AFRICA", "SOUTH SUDAN", "SUDAN", "TANZANIA", "TOGO", "UGANDA",
+  "ZAMBIA", "ZIMBABWE"
+)
+# Assign the "Sub-Saharan Africa" region to the specified countries
+world_data$Region[world_data$Country %in% sub_saharan_africa_countries] <- "Sub-Saharan Africa"
+
+
+View(world_data)
+```
+
+# Exploratory Data Analysis
+
+```{r}
+# Summary statistics for numerical variables
+summary_data <- world_data %>% select_if(is.numeric)
+summary(summary_data)
+
+# Summary statistics for categorical variables
+categorical_data <- world_data %>% select_if(is.factor)
+summary(categorical_data)
+
+# Visualization of numerical variables (histograms)
+histogram_plots <- world_data %>% select_if(is.numeric) %>%
+  gather(key = "Variable", value = "Value") %>%
+  ggplot(aes(x = Value)) +
+  geom_histogram(bins = 20) +
+  facet_wrap(~Variable, scales = "free_x")
+
+# Visualization of categorical variables (bar plots)
+bar_plots <- world_data %>% select_if(is.factor) %>%
+  gather(key = "Variable", value = "Value") %>%
+  count(Value, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Value, -n), y = n)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~Variable)
+
+# Box plots for numerical variables
+box_plots <- world_data %>% select_if(is.numeric) %>%
+  gather(key = "Variable", value = "Value") %>%
+  ggplot(aes(x = Variable, y = Value)) +
+  geom_boxplot()
+
+# Correlation matrix for numerical variables
+correlation_matrix <- cor(summary_data)
+correlation_matrix
+
+# Scatterplot matrix for numerical variables
+scatterplot_matrix <- ggpairs(summary_data)
+
+# View the visualizations and correlation matrix
+print(histogram_plots)
+print(bar_plots)
+print(box_plots)
+print(correlation_matrix)
+print(scatterplot_matrix)
 
 ```
 
+# Ordinal
+
+```{r}
+
+```
+
+# Generalized ordinal
+
+```{r}
+
+```
+
+# Poisson
+
+```{r}
+
+```
