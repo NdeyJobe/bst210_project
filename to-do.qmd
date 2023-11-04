@@ -1,0 +1,6 @@
+---
+title: "to-do"
+format: html
+---
+
+1. What countries to keep? Because of missing data, will analysis still be valid
