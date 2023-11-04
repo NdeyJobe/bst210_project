@@ -1,0 +1,79 @@
+---
+title: "source"
+format: html
+---
+
+```{r}
+# Install Library
+library(tidyverse)
+# Ordinal regression packages
+library(VGAM)
+```
+
+```{r}
+# Load data
+data <- read_csv("final_bst210_project_data.csv")
+```
+
+# Ordinal
+
+```{r}
+# Ordinal Regression #
+######################
+library(VGAM)
+# NOTE:
+# We will get the negative of the coefficients and same "intercept" as in Stata
+# if we set reverse = FALSE(default), because when reverse = FALSE, 
+# the model is P(Y<=j)/P(Y>j) = aj + b1X1 + ... + bpXp;
+# when reverse = TRUE, the model is P(Y>=j)/P(Y<j) = aj + b1X1 + ... + bpXp
+# Stata fits the model P(Y<=j)/P(Y>j) = aj - (b1X1 + ... + bpXp) 
+
+str(world_data)
+mod.2 = vglm(Mortality ~ pm_category,
+             cumulative(parallel=TRUE, reverse=FALSE), data=world_data)
+summary(mod.2)
+
+
+mod.2.2 = vglm(Mortality ~ pm_category,
+     cumulative(parallel=TRUE, reverse=TRUE), data=world_data)
+summary(mod.2.2)
+
+# Look at how fitted values compare to observed proportions
+table(dat$outcome, dat$treatment)
+prop.table(table(dat$outcome, dat$treatment), margin = 2)
+# Penicillin fitted probs.
+fitted(mod.2)[dat$treatment == "Penicillin",][1,]
+# Spect-Low fitted probs.
+fitted(mod.2)[dat$treatment == "Spect-Low",][1,]
+# Spect-High fitted probs.
+fitted(mod.2)[dat$treatment == "Spect-Hight",][1,]
+
+#############################
+# Using a different package #
+#############################
+library(MASS)
+mod.2b = polr(as.factor(outcome) ~ treatment, data = dat)
+summary(mod.2b)
+```
+
+# Generalized ordinal
+
+```{r}
+{r}
+# Fitting a generalized ordinal model (without the proportional odds assumption)
+mod.no.po <- vglm(Mortality ~ pm_category, cumulative(parallel=FALSE, reverse=T), data=framingham)
+mod.no.po
+
+# Conducting the likelihood ratio test
+pchisq(deviance(ord.agesex) - deviance(mod.no.po), df=df.residual(ord.agesex)-df.residual(mod.no.po), lower.tail=F)
+
+```
+
+# Poisson
+
+```{r}
+# Examining Confounding
+mod.cig <- glm(Mortality ~ pm_category, offset=log(manyears), data=lung,
+               family=poisson())
+#summary(mod.cig)
+```
