@@ -1,26 +1,60 @@
 ---
-title: "source"
+title: "Ordinal, Generalized ordinal, Poisson Regression Models"
 format: html
 ---
 
-```{r}
+```{r, eval=TRUE, echo=FALSE}
 # Install Library
 library(tidyverse)
 # Ordinal regression packages
 library(VGAM)
+
+# Install and load the "MASS" package if not already installed
+if (!require("MASS")) {
+  install.packages("MASS")
+  library("MASS")
+}
+
 ```
 
-```{r}
+```{r, eval=TRUE, echo=FALSE}
 # Load data
 data <- read_csv("final_bst210_project_data.csv")
 ```
 
+### Data Summaries of potential final model variables
+
+```{r, eval=TRUE, echo=FALSE}
+# Data summaries
+# Outcome
+par(mfrow=c(1,2))
+hist(data$Mortality)
+plot(table(data$Mortality))
+table(data$Mortality)
+
+# Explanatory variables
+par(mfrow=c(3,3))
+hist(data$PM)
+hist(data$Sanitation)
+hist(data$U)
+hist(data$RE)
+hist(data$Tobacco)
+hist(data$IMM)
+```
+
+#### **(5b) cont'd**
+
 # Ordinal
 
-```{r}
+**The ordinal model is not a good fit for the data, as demonstrated below.**
+
+### Ordinal data formulation:
+
+Refer to the section titled: *Data Formulation To fit a Logistic, Multinomial, Ordinal, Generalized Ordinal, Poisson*
+
+```{r, eval=TRUE, echo=FALSE}
 # Ordinal Regression #
 ######################
-library(VGAM)
 # NOTE:
 # We will get the negative of the coefficients and same "intercept" as in Stata
 # if we set reverse = FALSE(default), because when reverse = FALSE, 
@@ -28,52 +62,283 @@ library(VGAM)
 # when reverse = TRUE, the model is P(Y>=j)/P(Y<j) = aj + b1X1 + ... + bpXp
 # Stata fits the model P(Y<=j)/P(Y>j) = aj - (b1X1 + ... + bpXp) 
 
-str(world_data)
-mod.2 = vglm(Mortality ~ pm_category,
-             cumulative(parallel=TRUE, reverse=FALSE), data=world_data)
-summary(mod.2)
+mod.ordinal.0 = vglm(Mortality_Ordinal ~ PM,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.0)
 
 
-mod.2.2 = vglm(Mortality ~ pm_category,
-     cumulative(parallel=TRUE, reverse=TRUE), data=world_data)
-summary(mod.2.2)
+mod.ordinal.1 = vglm(Mortality_Ordinal ~ PM + PM_squared,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.1)
 
-# Look at how fitted values compare to observed proportions
-table(dat$outcome, dat$treatment)
-prop.table(table(dat$outcome, dat$treatment), margin = 2)
-# Penicillin fitted probs.
-fitted(mod.2)[dat$treatment == "Penicillin",][1,]
-# Spect-Low fitted probs.
-fitted(mod.2)[dat$treatment == "Spect-Low",][1,]
-# Spect-High fitted probs.
-fitted(mod.2)[dat$treatment == "Spect-Hight",][1,]
+# Examining Effect Modifiers
+mod.ordinal.2.0 = vglm(Mortality_Ordinal ~ PM + CO2m + PM * CO2m,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.2.0)
 
-#############################
-# Using a different package #
-#############################
-library(MASS)
-mod.2b = polr(as.factor(outcome) ~ treatment, data = dat)
-summary(mod.2b)
+mod.ordinal.2.1 = vglm(Mortality_Ordinal ~ PM + CO2m + GDP + GDP * CO2m,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.2.1)
+
+
+
+# Examining Confounding
+mod.ordinal.3 = vglm(Mortality_Ordinal ~ PM  + Sanitation + U +  
+                    + IMM ,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.3)
+
+
+mod.ordinal.4 = vglm(Mortality_Ordinal ~ PM + Tobacco+ Sanitation + IMM + RE + CO2 + GDP,
+             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+summary(mod.ordinal.4)
+
 ```
 
 # Generalized ordinal
 
-```{r}
-{r}
+**The generalized ordinal model is not a good fit for the data, as demonstrated below.**
+
+```{r, eval=TRUE, echo=FALSE}
 # Fitting a generalized ordinal model (without the proportional odds assumption)
-mod.no.po <- vglm(Mortality ~ pm_category, cumulative(parallel=FALSE, reverse=T), data=framingham)
-mod.no.po
+mod.gen.ordinal.0<- vglm(Mortality_Ordinal ~ PM, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.0)
+
+
+mod.gen.ordinal.1<- vglm(Mortality_Ordinal ~ PM + PM_squared, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.1)
+
+
+# Examining Effect Modifiers
+mod.gen.ordinal.2.0<- vglm(Mortality_Ordinal ~ PM + CO2m + PM * CO2, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.2.0)
+
+mod.gen.ordinal.2.1<- vglm(Mortality_Ordinal ~ PM + CO2m + GDP + GDP * CO2m, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.2.1)
+
+
+# Examining Confounding
+mod.gen.ordinal.3<- vglm(Mortality_Ordinal ~ PM  + Sanitation + U +  
+                    + IMM, cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.3)
+
+mod.gen.ordinal.4<- vglm(Mortality_Ordinal ~ PM + Tobacco + Sanitation + IMM + RE + CO2, cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.4)
+
 
 # Conducting the likelihood ratio test
-pchisq(deviance(ord.agesex) - deviance(mod.no.po), df=df.residual(ord.agesex)-df.residual(mod.no.po), lower.tail=F)
+pchisq(deviance(mod.gen.ordinal.4) - deviance(mod.gen.ordinal.3), 
+       df=df.residual(mod.gen.ordinal.4)-df.residual(mod.gen.ordinal.3), lower.tail=F)
 
 ```
 
+#### (5c)
+
 # Poisson
 
+### Poisson data formulation:
+
+Refer to the section titled: *Data Formulation To fit a Logistic, Multinomial, Ordinal, Generalized Ordinal, Poisson*
+
+### Outline of analysis setup:
+
+1.  **Data Preparation**:
+
+    -   Load and clean our dataset, ensuring that it contains the variables of interest: PM2.5 air quality, under-5 mortality (Mortality) rate, Sanitation rate, Undernourishment rate, Renewable Energy Access, Immunization (IMM) rate, and Tobacco usage.
+
+2.  **Exploratory Data Analysis (EDA)**:
+
+    -   Start with an exploratory data analysis to understand the distributions and relationships between variables. This includes summary statistics, correlation analysis, and data visualization.
+
+3.  **Model Setup**:
+
+    -   Define our outcome variable (dependent variable):
+
+        -   Under-5 mortality (Mortality)
+
+    -   Identify potential confounding variables:
+
+        -   Sanitation
+
+        -   Undernourishment
+
+        -   Renewable Energy
+
+        -   Immunization (IMM)
+
+        -   Tobacco
+
+    -   Define our predictor (independent variable):
+
+        -   PM2.5 air quality (PM)
+
+    -   Create a data frame containing the variables of interest.
+
+4.  **Assumptions Check**:
+
+    -   Check the assumptions of the poisson regression model, including mean = variance assumption.
+
+5.  **Multiple Linear Regression Model**:
+
+    -   Set up a poisson multiple linear regression model.
+
+6.  **Model Fitting**:
+
+    -   Fit the multiple linear regression model to your data.
+
+7.  **Interpretation**:
+
+    -   Examine the coefficients, p-values, and confidence intervals for each predictor in the model.
+
+    -   Focus on the coefficient for PM2.5 to assess its effect on Mortality while controlling for potential confounders.
+
+    -   If the coefficient for PM2.5 is statistically significant, it suggests that PM2.5 has an effect on Mortality.
+
+8.  **Control for Confounding**:
+
+    -   If there is evidence of confounding, you can further explore interactions between variables or consider additional control variables.
+
+9.  **Model Assessment**:
+
+    -   Evaluate the overall goodness of fit for the model.
+
+Having done the data preparation, exploratory data analysis and model setup, we now check for whether the assumptions of the poisson regression holds.
+
+### Checking Mean = Variance Assumption
+
+The mean is:
+
+```{r, eval=TRUE, echo=FALSE}
+mean(data$Mortality)
+
+```
+
+The Variance is:
+
 ```{r}
+var(data$Mortality)
+
+```
+
+**The Dispersion parameter (= residual deviance/df) is:**
+
+```{r}
+# Dispersion parameter (= residual deviance/df)
+qpois <- glm(Mortality ~ PM, data=data, family = quasipoisson)
+summary(qpois)$dispersion
+```
+
+**The Mean = Variance Assumption does not hold. The variance of this (presumably) Poisson outcome variable is much greater than the mean. Our data exhibit overdispersion. Hence, our data is not truly supportive of a Poisson modelling**
+
+```{r, warning=FALSE, , eval=TRUE, echo=FALSE}
+# Dispersion parameter (= residual deviance/df)
+mod.poisson.0 <- glm(Mortality ~ PM + PM_squared, data=data, family=poisson())
+#summary(mod.poisson.0)
+deviance(mod.poisson.0)/mod.poisson.0$df.residual
+#mod.poisson.0$df.residual
+
+
+
 # Examining Confounding
-mod.cig <- glm(Mortality ~ pm_category, offset=log(manyears), data=lung,
-               family=poisson())
-#summary(mod.cig)
+mod.poisson.1 <- glm(Mortality ~ PM + PM_squared + Sanitation + U  + RE + RE_Squared  
+                    + IMM + IMM_Squared, data=data, family=poisson())
+#summary(mod.poisson.1)
+deviance(mod.poisson.1)/mod.poisson.1$df.residual
+#mod.poisson.1$df.residual
+
+
+
+mod.poisson.2 <- glm(Mortality ~ PM  + Sanitation + U  + RE + RE_Squared  
+                    + IMM + IMM_Squared + CO2, data=data, family=poisson())
+#summary(mod.poisson.2)
+
+deviance(mod.poisson.2)/mod.poisson.2$df.residual
+#mod.poisson.2$df.residual
+
+
+
+mod.poisson.3 <- glm(Mortality ~ PM  + Sanitation + U + Tobacco + Tobacco_Squared + RE + RE_Squared + IMM + IMM_Squared + CO2, data=data, family=poisson())
+summary(mod.poisson.3)
+
+deviance(mod.poisson.3)/mod.poisson.3$df.residual
+#mod.poisson.3$df.residual
+
+
+# Examining Effect modifiers
+
+
+```
+
+**We might consider a negative binomial model as a possible alternative since our data exhibits over dispersion. Below we fit a negative binomial:**
+
+# Negative Binomial Models
+
+```{r, warning=FALSE,eval=TRUE, echo=FALSE}
+# Fit a Negative Binomial regression model
+mod.nb.0.0 <- glm.nb(
+  formula = Mortality ~ PM ,
+  data = data
+)
+summary(mod.nb.0.0)
+
+mod.nb.0.1 <- glm.nb(
+  formula = Mortality ~ PM + PM_squared,
+  data = data
+)
+summary(mod.nb.0.1)
+
+# Examining Effect Modifiers
+mod.nb.0.2 <- glm.nb(formula = Mortality ~ PM + PM_squared + CO2m + PM * CO2m + PM_squared * CO2m, 
+  data = data)
+summary(mod.nb.0.2)
+
+
+mod.gen.ordinal.0.3<- vglm(Mortality_Ordinal ~ PM + PM_squared + GDP + CO2m + GDP * CO2m, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.0.3)
+
+mod.gen.ordinal.0.4<- vglm(Mortality_Ordinal ~ PM + CO2m + GDP + GDP * CO2m, 
+                         cumulative(parallel=FALSE, reverse=T), data=data)
+summary(mod.gen.ordinal.0.4)
+
+
+
+# Examining Confounding
+mod.nb1 <- glm.nb(
+  formula = Mortality ~ PM + PM_squared + Sanitation + U  + RE + RE_Squared  + IMM + IMM_Squared,
+  data = data
+)
+summary(mod.nb1)
+
+
+mod.nb2 <- glm.nb(
+  formula = Mortality ~ PM  + Sanitation + U  + RE + RE_Squared  + IMM + IMM_Squared + CO2,
+  data = data
+)
+summary(mod.nb2)
+
+
+mod.nb3 <- glm.nb(
+  formula = Mortality ~ PM  + Sanitation + U + Tobacco + Tobacco_Squared + RE + RE_Squared + IMM + IMM_Squared + GDP,
+  data = data
+)
+summary(mod.nb3)
+
+
+mod.nb4 <- glm.nb(
+  formula = Mortality ~ PM + Sanitation + IMM + IMM_Squared + GDP ,
+  data = data
+)
+summary(mod.nb4) 
+
+```
+
+```{r,eval=TRUE, echo=FALSE}
+# Perform a likelihood ratio test
+lr_test <- anova(mod.nb3, mod.nb4, test = "Chisq")
+print(lr_test)
 ```

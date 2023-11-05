@@ -1,0 +1,387 @@
+---
+title: ""
+author: ""
+date: ""
+output: pdf_document
+---
+
+Khondoker Nazmoon Nabi \
+HW 8 \
+11/04/2023 \
+PhD Biostatistics \
+I have read and attest to the statement in the BST 210 HW \
+
+
+## \underline{Question 1}:
+
+```{r, echo=FALSE, eval=T, warning=FALSE}
+library(stats)
+library(pscl)
+library(lmtest)
+library(sandwich)
+library(MASS)
+library(car)
+library(vcd)
+library(AER)
+library(pROC)
+library(tidyverse)
+library(readxl)
+library(ggthemes)
+library(gam)
+library(splines)
+library(splines2)  
+library(glmnet)
+library(vip) 
+library(car)
+```
+
+
+```{r, echo=FALSE, warning=F}
+# Import data
+data <- read_csv("Final_clean_data.csv")
+```
+
+# Data Wrangling
+
+```{r}
+# Data wrangle
+# Get the column names
+column_names <- colnames(data)
+c_data <- data |> slice(1:217)
+c_data <- c_data[, !(names(c_data) %in% c("P", "Handwash", "EAB", "EAS", "EAP", "EAL"))]
+
+# List of columns to exclude from conversion
+exclude_columns <- c("Region", "Country", "CC")
+
+# Use lapply to convert all other columns to numeric
+c_data[, setdiff(names(c_data), exclude_columns)] <- lapply(
+  c_data[, setdiff(names(c_data), exclude_columns)],
+  function(x) as.numeric(as.character(x))
+)
+
+clean_data <- na.omit(c_data)
+# Filter the data to keep only countries with GDP less than 33500
+world_data <- clean_data %>% filter(GDP < 33500)
+```
+
+```{r}
+# Define the breaks and labels for the categories
+breaks <- c(0, 33500, 80000, Inf)
+labels <- c("LowMiddle", "High", "Very High")
+
+# Create a categorical variable based on the specified categories
+# Create the categorical variable in your data frame
+clean_data <- clean_data %>%
+  mutate(GDP_category = cut(GDP, breaks = breaks, labels = labels, include.lowest = TRUE))
+```
+
+
+
+#### PM categorized Data
+
+```{r}
+# Define the breaks and labels for the categories
+breaks <- c(0.0, 10.0, 25.0, 50.0, Inf)
+labels <- c("Low", "Moderate", "High", "Very High")
+
+# Create a categorical variable based on the specified categories
+# Create the categorical variable in your data frame
+world_data <- world_data %>%
+  mutate(pm_category = cut(PM, breaks = breaks, labels = labels, include.lowest = TRUE))
+# Display the categorization
+head(world_data)
+```
+
+
+# Exploratory data analysis
+
+```{r}
+clean_data %>%
+  ggplot(aes(PM, Mortality, color = GDP_category)) +
+  geom_point() +
+  xlab("PM2.5 air pollution") +
+  ylab("Child (aged under 5) mortality rate") + 
+  scale_color_discrete(name = "GDP_category")
+```
+
+
+```{r}
+world_data %>%
+  ggplot(aes(PM, Mortality, color = pm_category)) +
+  geom_point() +
+  xlab("PM2.5 air pollution") +
+  ylab("Child (aged under 5) mortality rate") + 
+  scale_color_discrete(name = "pm_category")
+```
+
+# Graphical exploration
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = PM, y = Mortality), color="red") + geom_smooth(aes(x = PM, y = Mortality), method="loess")+ ggtitle("Child (aged under 5) mortality rate vs PM2.5 air pollution")+ theme_economist()
+```
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = Sanitation, y = Mortality), color="red") + geom_smooth(aes(x = Sanitation, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs basic sanitation services")+ theme_economist()
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = U, y = Mortality), color="red") + geom_smooth(aes(x = U, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs undernourishment")+ theme_economist()
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = RE, y = Mortality), color="red") + geom_smooth(aes(x = RE, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs renewable energy consumption")+ theme_economist()
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = Tobacco, y = Mortality), color="red") + geom_smooth(aes(x = Tobacco, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs tobacco use")+ theme_economist()
+```
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = IMM, y = Mortality), color="red") + geom_smooth(aes(x = IMM, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs vaccination (MMR)")+ theme_economist()
+```
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = CO2m, y = Mortality), color="red") + geom_smooth(aes(x = CO2m, y = Mortality), method="loess")+ ggtitle("Child (under 5) mortality rate vs CO2 emissions (per capita)")+ theme_economist()
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(world_data) +geom_point(aes(x = CO2m, y = PM), color="red") + geom_smooth(aes(x = CO2m, y = PM), method="loess")+ ggtitle("PM2.5 air pollution vs CO2 emissions (per capita)")+ theme_economist()
+```
+
+
+
+```{r}
+ordered_data <- world_data[order(world_data$PM),]
+
+model_linear <- lm(Mortality ~ PM, data=ordered_data)
+#quadratic model
+model_quad <- lm(Mortality ~ PM + I(PM^2), data=ordered_data)
+#spline
+model_spline <- lm(Mortality ~bSpline(PM,df=4),data=ordered_data)
+#Additive model (GAM)
+model_gam <- gam(Mortality ~s(PM,4), data=ordered_data)
+
+plot(Mortality ~ PM, data=ordered_data)
+lines(ordered_data$PM, fitted(model_linear),col="red")
+lines(ordered_data$PM, fitted(model_quad),col="blue")
+lines(ordered_data$PM,fitted(model_spline),col="green")
+lines(ordered_data$PM,fitted(model_gam),col="purple")
+legend(x="topleft",legend=c("Linear","Quadratic","Spline", "GAM"),fill=c("red","blue","green", "purple"))
+```
+
+```{r}
+AIC(model_linear)
+AIC(model_quad)
+AIC(model_spline)
+AIC(model_gam)
+```
+
+```{r}
+anova(model_quad, model_spline)
+anova(model_quad, model_gam)
+```
+
+```{r}
+# Assessing confounding by CO2 of the effect of PM on Mortality
+crude_model <- lm(Mortality ~ PM, data= ordered_data)
+adjusted_model <- lm(Mortality ~ PM + CO2m, data=ordered_data)
+
+# Assessing confounding by CO2 of the effect of PM on Mortality
+summary(crude_model)
+summary(adjusted_model)
+
+# Examining percent change
+100*((abs(coefficients(crude_model)[2] - coefficients(adjusted_model)[2]))/coefficients(adjusted_model)[2]) # age
+```
+
+
+```{r}
+# Assessing effect modification
+model_effect <-lm(Mortality ~ PM + CO2m +PM * CO2m,data=ordered_data)
+summary(model_effect)
+```
+
+
+
+```{r,echo=FALSE}
+model_2 <-lm(Mortality ~ PM + CO2m ,data=ordered_data)
+
+raw_residuals <- resid(model_2)
+```
+
+
+```{r, echo=FALSE}
+res<-residuals(model_2)
+fit<-fitted.values(model_2)
+
+mystd <- res/(sqrt(sum(res^2)/(length(res)-1-4))) # standardized 
+stdres<-rstandard(model_2) # internally stud
+stures<-rstudent(model_2) # externally stud
+```
+
+```{r, echo=FALSE}
+# Creating scatterplots of the residual values
+plot(res,stdres)
+plot(res,stures)
+plot(res,mystd)
+plot(mystd,stures)
+plot(mystd,stdres)
+plot(stdres,stures)
+```
+
+
+
+```{r, echo=FALSE}
+# Calculating Pearson correlation coefficients
+cor(res,stdres)
+cor(res,stures)
+cor(res,mystd)
+cor(mystd,stures)
+cor(mystd,stdres)
+cor(stdres,stures)
+```
+
+
+```{r, echo=FALSE}
+# Question 2E 
+# Assessing normality of the residuals
+hist(stures,probability = TRUE)
+curve(dnorm,from=-4,to=4,add=TRUE)
+qqnorm(stures)
+abline(0,1)
+shapiro.test(stures)
+```
+
+
+
+
+```{r, echo=FALSE}
+# Examining observations with large internally/externally studentized residuals
+d2<-ordered_data[,c("PM","CO2m","Tobacco","Sanitation","U", "IMM", "Tobacco")]
+summary(d2[,-1])
+d3<-cbind(d2,stdres,stures)
+d3[abs(stdres)>2,]
+d3[abs(stures)>2,]
+d3[abs(stdres)>2.5,]
+d3[abs(stures)>2.5,]
+```
+
+```{r, echo=FALSE}
+# assessment of leverage (hat values)
+hat<-hatvalues(model_2)
+cooksd<-cooks.distance(model_2)
+summary(hat)
+mean(hat)
+(thresh<-length(coef(model_2))/length(hat)) #(p+1)/n
+```
+
+```{r, echo=FALSE}
+# Question 3B
+# Creating a histogram & boxplot of the hat values
+hist(hat)
+boxplot(hat)
+# assessment of Cook's distances
+summary(cooksd)
+hist(cooksd)
+boxplot(cooksd)
+```
+
+
+```{r}
+# Optional part: DFBETA
+n<- 109
+dfb<-dfbeta(model_2)
+dfb_thresh<-2/sqrt(n)
+dfb_infl<-apply(dfb,1,function(x){any(abs(x)>dfb_thresh)})
+d2[dfb_infl,] #points found as influential by DFBETA
+```
+
+```{r}
+model_2 <- lm(Mortality~ PM + CO2m+ U+ Sanitation +Tobacco+IMM+RE,data=ordered_data) 
+summary(model_2)
+vif(model_2)
+```
+
+
+```{r, echo=FALSE}
+# Model select via Penalized regression methods
+set.seed(17)
+lambda_grid <- 0.2 ^ (-50:50)
+
+temp <- ordered_data[,c("Mortality","PM","CO2m","Sanitation","U","GDP",
+                   "RE","CHE","IMM", "Tobacco",
+                   "OAPc")] 
+
+# Prepare X matrix (minus death) for input to glmnet
+x <- model.matrix(Mortality~., data=temp)[,-c(1)]
+y <- temp$Mortality
+```
+
+
+```{r, echo=FALSE}
+names(x)<- c("Mortality","PM","CO2m","Sanitation","U","GDP",
+                   "RE","CHE","IMM", "Tobacco",
+                   "OAPc")
+
+# Ridge
+ridge.fram = glmnet(x,y, alpha=0,
+                    lambda=lambda_grid, data=temp)
+#print(ridge.fram)
+vip(ridge.fram, num_features=11, geom="point", include_type=TRUE)
+par(mfrow=c(1,2))
+plot(ridge.fram)
+cv.ridge <- cv.glmnet(x,y, alpha=0, data=temp)
+plot(cv.ridge)
+lambda_min <- cv.ridge$lambda.min
+lambda_1se <- cv.ridge$lambda.1se
+coef(cv.ridge,s=lambda_1se)
+
+# LASSO
+lasso.fram = glmnet(x,y, alpha=1,
+                    lambda=lambda_grid, data=temp)
+vip(lasso.fram, num_features=11, geom="point", include_type=TRUE)
+par(mfrow=c(1,2))
+plot(lasso.fram)
+cv.lasso <- cv.glmnet(x,y, alpha=1)
+plot(cv.lasso)
+lambda_min <- cv.lasso$lambda.min
+lambda_1se <- cv.lasso$lambda.1se
+coef(cv.lasso,s=lambda_1se)
+
+# Elastic Net
+EN.fram = glmnet(x,y, alpha=0.5,
+                 lambda=lambda_grid, data=temp)
+vip(EN.fram, num_features=11, geom="point", include_type=TRUE)
+par(mfrow=c(1,2))
+plot(EN.fram)
+cv.EN <- cv.glmnet(x,y, alpha=0.5)
+plot(cv.EN)
+lambda_min <- cv.EN$lambda.min
+lambda_1se <- cv.EN$lambda.1se
+coef(cv.EN,s=lambda_1se)
+```
+
+
+
+```{r}
+final_model <- lm(Mortality~ PM +Tobacco+ Sanitation + IMM + RE+ CO2m,data=world_data) 
+summary(final_model)
+vif(final_model)
+AIC(final_model)
+```
+
+## \underline{Appendix}:
+
+### Code:
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```
+
+
