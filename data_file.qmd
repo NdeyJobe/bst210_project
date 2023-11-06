@@ -1,9 +1,9 @@
 ---
 title: "Data Formulation To fit a Logistic, Multinomial, Ordinal, Generalized Ordinal, Poisson"
-format: html
+format: pdf
 ---
 
-```{r}
+```{r, warning=FALSE, cache.comments=FALSE, message=FALSE}
 # Load packages
 library(tidyverse)
 library(stringr)
@@ -16,7 +16,7 @@ library(stringr)
 
 ```
 
-```{r}
+```{r, warning=FALSE, cache.comments=FALSE, message=FALSE}
 # Import data
 data <- read_csv("Draft_data.csv")
 ```
@@ -28,7 +28,9 @@ data <- read_csv("Draft_data.csv")
 # Get the column names
 column_names <- colnames(data)
 world_data <- data |> slice(1:217)
-world_data <- world_data[, !(names(world_data) %in% c("P", "Handwash", "EAB", "EAS", "EAP", "EAL"))]
+world_data <- world_data[, !(names(world_data) 
+                             %in% c("P", "Handwash", "EAB", 
+                                    "EAS", "EAP", "EAL"))]
 
 # List of columns to exclude from conversion
 exclude_columns <- c("Region", "Country", "CC")
@@ -105,7 +107,8 @@ world_data$pm_category <- relevel(world_data$pm_category, ref = "Low")
 levels_order <- c("Low", "Moderate", "High", "Very High")
 
 # Convert the variable to a factor
-world_data$pm_ordinal <- factor(world_data$pm_category, levels = levels_order, ordered = TRUE)
+world_data$pm_ordinal <- factor(world_data$pm_category, 
+                                levels = levels_order, ordered = TRUE)
 
 ```
 
@@ -267,7 +270,9 @@ world_data$Mortality_Category <- relevel(world_data$Mortality_Category, ref = "L
 levels_order <- c("Low", "High")
 
 # Convert the variable to a factor
-world_data$Mortality_Ordinal <- factor(world_data$Mortality_Category, levels = levels_order, ordered = TRUE)
+world_data$Mortality_Ordinal <- 
+  factor(world_data$Mortality_Category, 
+         levels = levels_order, ordered = TRUE)
 ```
 
 # Final Data

@@ -1,11 +1,12 @@
 ---
 title: "Ordinal, Generalized ordinal, Poisson Regression Models"
-format: html
+format: pdf
 ---
 
-```{r, eval=TRUE, echo=FALSE}
+```{r, warning=FALSE, cache.comments=FALSE, message=FALSE}
 # Install Library
-library(tidyverse)
+library(readr)
+
 # Ordinal regression packages
 library(VGAM)
 
@@ -27,13 +28,13 @@ data <- read_csv("final_bst210_project_data.csv")
 ```{r, eval=TRUE, echo=FALSE}
 # Data summaries
 # Outcome
-par(mfrow=c(1,2))
+#par(mfrow=c(1,2))
 hist(data$Mortality)
 plot(table(data$Mortality))
 table(data$Mortality)
 
 # Explanatory variables
-par(mfrow=c(3,3))
+#par(mfrow=c(3,3))
 hist(data$PM)
 hist(data$Sanitation)
 hist(data$U)
@@ -52,7 +53,7 @@ hist(data$IMM)
 
 Refer to the section titled: *Data Formulation To fit a Logistic, Multinomial, Ordinal, Generalized Ordinal, Poisson*
 
-```{r, eval=TRUE, echo=FALSE}
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, cache.comments=FALSE, message=FALSE}
 # Ordinal Regression #
 ######################
 # NOTE:
@@ -63,21 +64,25 @@ Refer to the section titled: *Data Formulation To fit a Logistic, Multinomial, O
 # Stata fits the model P(Y<=j)/P(Y>j) = aj - (b1X1 + ... + bpXp) 
 
 mod.ordinal.0 = vglm(Mortality_Ordinal ~ PM,
-             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+             cumulative(parallel=TRUE, reverse=FALSE), 
+             data=data)
 summary(mod.ordinal.0)
 
 
 mod.ordinal.1 = vglm(Mortality_Ordinal ~ PM + PM_squared,
-             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+             cumulative(parallel=TRUE, reverse=FALSE), 
+             data=data)
 summary(mod.ordinal.1)
 
 # Examining Effect Modifiers
 mod.ordinal.2.0 = vglm(Mortality_Ordinal ~ PM + CO2m + PM * CO2m,
-             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+             cumulative(parallel=TRUE, reverse=FALSE), 
+             data=data)
 summary(mod.ordinal.2.0)
 
 mod.ordinal.2.1 = vglm(Mortality_Ordinal ~ PM + CO2m + GDP + GDP * CO2m,
-             cumulative(parallel=TRUE, reverse=FALSE), data=data)
+             cumulative(parallel=TRUE, reverse=FALSE), 
+             data=data)
 summary(mod.ordinal.2.1)
 
 
@@ -102,37 +107,50 @@ summary(mod.ordinal.4)
 ```{r, eval=TRUE, echo=FALSE}
 # Fitting a generalized ordinal model (without the proportional odds assumption)
 mod.gen.ordinal.0<- vglm(Mortality_Ordinal ~ PM, 
-                         cumulative(parallel=FALSE, reverse=T), data=data)
+                         cumulative(parallel=FALSE, reverse=T), 
+                         data=data)
 summary(mod.gen.ordinal.0)
 
 
 mod.gen.ordinal.1<- vglm(Mortality_Ordinal ~ PM + PM_squared, 
-                         cumulative(parallel=FALSE, reverse=T), data=data)
+                         cumulative(parallel=FALSE, reverse=T), 
+                         data=data)
 summary(mod.gen.ordinal.1)
 
 
 # Examining Effect Modifiers
-mod.gen.ordinal.2.0<- vglm(Mortality_Ordinal ~ PM + CO2m + PM * CO2, 
-                         cumulative(parallel=FALSE, reverse=T), data=data)
+mod.gen.ordinal.2.0<- vglm(Mortality_Ordinal ~ PM + 
+                             CO2m + PM * CO2m, 
+                         cumulative(parallel=FALSE, reverse=T), 
+                         data=data)
 summary(mod.gen.ordinal.2.0)
 
-mod.gen.ordinal.2.1<- vglm(Mortality_Ordinal ~ PM + CO2m + GDP + GDP * CO2m, 
-                         cumulative(parallel=FALSE, reverse=T), data=data)
+mod.gen.ordinal.2.1<- vglm(Mortality_Ordinal ~ PM + CO2m + 
+                             GDP + GDP * CO2m, 
+                         cumulative(parallel=FALSE, reverse=T), 
+                         data=data)
 summary(mod.gen.ordinal.2.1)
 
 
 # Examining Confounding
 mod.gen.ordinal.3<- vglm(Mortality_Ordinal ~ PM  + Sanitation + U +  
-                    + IMM, cumulative(parallel=FALSE, reverse=T), data=data)
+                    + IMM, cumulative(parallel=FALSE, reverse=T), 
+                    data=data)
 summary(mod.gen.ordinal.3)
 
-mod.gen.ordinal.4<- vglm(Mortality_Ordinal ~ PM + Tobacco + Sanitation + IMM + RE + CO2, cumulative(parallel=FALSE, reverse=T), data=data)
+mod.gen.ordinal.4<- vglm(Mortality_Ordinal ~ PM + 
+                           Tobacco + Sanitation + 
+                           IMM + RE + CO2, 
+                         cumulative(parallel=FALSE, reverse=T), 
+                         data=data)
 summary(mod.gen.ordinal.4)
 
 
 # Conducting the likelihood ratio test
-pchisq(deviance(mod.gen.ordinal.4) - deviance(mod.gen.ordinal.3), 
-       df=df.residual(mod.gen.ordinal.4)-df.residual(mod.gen.ordinal.3), lower.tail=F)
+pchisq(deviance(mod.gen.ordinal.4) - 
+         deviance(mod.gen.ordinal.3), 
+       df=df.residual(mod.gen.ordinal.4)-
+         df.residual(mod.gen.ordinal.3), lower.tail=F)
 
 ```
 
