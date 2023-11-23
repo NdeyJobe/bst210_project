@@ -12,19 +12,17 @@ library(tools)
 # Data Cleaning
 
 ```{r}
-world_data <- janitor::clean_names(read_csv("world_data.csv"))
-low_income <- janitor::clean_names(read_csv("low_income.csv"))
-upper_middle_income <- janitor::clean_names(read_csv("upper_middle_income.csv"))
-lower_middle_income <- janitor::clean_names(read_csv("lower_middle_income.csv"))
-high_income <- janitor::clean_names(read_csv("high_income.csv"))
-not_classified <- janitor::clean_names(read_csv("not_classified.csv"))
-
-# Assuming 'world_data' is your data frame
-View(world_data)
+world_data <- janitor::clean_names(read_csv("data/world_data.csv"))
+low_income <- janitor::clean_names(read_csv("data/low_income.csv"))
+upper_middle_income <- janitor::clean_names(read_csv("data/upper_middle_income.csv"))
+lower_middle_income <- janitor::clean_names(read_csv("data/lower_middle_income.csv"))
+high_income <- janitor::clean_names(read_csv("data/high_income.csv"))
+not_classified <- janitor::clean_names(read_csv("data/not_classified.csv"))
 
 # Use the rename function to rename columns
 world_data <- world_data %>%
-  rename(immunization = immunization_measles_percent_of_children_ages_12_23_months_sh_imm_meas, 
+  rename(birth_rate = birth_rate_crude_per_1_000_people_sp_dyn_cbrt_in,
+         immunization = immunization_measles_percent_of_children_ages_12_23_months_sh_imm_meas, 
          basic_sanitation = people_using_at_least_basic_sanitation_services_percent_of_population_sh_sta_bass_zs, 
          gni = gni_per_capita_atlas_method_current_us_ny_gnp_pcap_cd,
          year = time, 
@@ -249,18 +247,35 @@ world_data$mortality_rate_under_5_cat <- relevel(world_data$mortality_rate_under
 # Variable Selection
 
 ```{r}
-
-View(world_data)
 # Select variables
 data <- world_data %>%
   filter(year %in% 2010:2019) %>%
-  select(-c(community_health_workers, physicians, health_expenditure_per_capita, time_code, gdp, gni))
+  dplyr::select(-c(community_health_workers, physicians, health_expenditure_per_capita, time_code, gdp, gni))
  
 # Change data type
 data <- data %>%
-  mutate(year = year(make_date(year)), co2_per_capita = as.numeric(co2_per_capita), gdp_per_capita = as.numeric(gdp_per_capita), pm2_5 = as.numeric(pm2_5), mortality_rate_infant = as.numeric(mortality_rate_infant), mortality_rate_neonatal = as.numeric(mortality_rate_neonatal), mortality_rate_under_5 = as.numeric(mortality_rate_under_5), health_expenditure_percent_of_gdp = as.numeric(health_expenditure_percent_of_gdp), population = as.numeric(population))
+  mutate(year = year(make_date(year)), co2_per_capita = as.numeric(co2_per_capita), gdp_per_capita = as.numeric(gdp_per_capita), pm2_5 = as.numeric(pm2_5), mortality_rate_infant = as.numeric(mortality_rate_infant), mortality_rate_neonatal = as.numeric(mortality_rate_neonatal), mortality_rate_under_5 = as.numeric(mortality_rate_under_5), health_expenditure_percent_of_gdp = as.numeric(health_expenditure_percent_of_gdp), population = as.numeric(population), birth_rate = as.numeric(birth_rate))
 
-View(data)
+```
+
+# Death count calculation
+
+Under-5 mortality count
+
+```{r}
+data <- data %>%
+  rowwise() %>%
+  mutate(mortality_count_under_5 = as.numeric(mortality_rate_under_5) * as.numeric(birth_rate) * as.numeric(population))
+
+```
+
+Neonatal mortality count
+
+```{r}
+data <- data %>%
+  rowwise() %>%
+  mutate(mortality_count_neonatal = as.numeric(mortality_rate_neonatal) * as.numeric(birth_rate) * as.numeric(population))
+
 ```
 
 # Missing Data
@@ -283,7 +298,7 @@ data <- data %>%
 View(data)
 ```
 
-#  Final Data Set
+# Final Data Set
 
 ```{r}
 # Assuming 'datatmp' is your filtered data frame

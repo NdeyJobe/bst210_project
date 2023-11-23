@@ -16,6 +16,7 @@ if (!require("MASS")) {
 data <- read_csv("data/bst210_project_data.csv")
 ```
 
+
 ```{r}
 mod.neonatal <- glm.nb(formula = mortality_rate_neonatal ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization, data = data)
 summary(mod.neonatal) 
@@ -23,6 +24,6 @@ summary(mod.neonatal)
 
 ```{r}
 mod.under.five <- glm.nb(formula = mortality_rate_under_5 ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization, data = data)
-summary(mod.neonatal) 
+summary(mod.five) 
 ```
 
