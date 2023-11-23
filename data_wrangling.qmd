@@ -54,6 +54,8 @@ print(colnames(world_data))
 
 # Region Stratification
 
+Region is stratified according to the world bank definition of the region each country belongs to.
+
 ```{r}
 # Create a new column named "Region" in the dataset
 world_data$region <- NA
@@ -195,6 +197,8 @@ world_data$region <- relevel(world_data$region, ref = "Sub-Saharan Africa")
 
 # Income Stratification
 
+Data is stratified according to the world bank definition of low income, upper middle income, lower middle income, high income, and not classified.
+
 ```{r}
 # Create a factor variable indicating income level in the global dataset
 world_data <- world_data %>%
@@ -211,6 +215,34 @@ View(world_data)
 world_data$income_level <- as.factor(world_data$income_level)
 # Set "Sub-Saharan Africa" as the reference level
 world_data$income_level <- relevel(world_data$income_level, ref = "Low income")
+
+```
+
+# Mortality stratification
+
+Mortality is stratified according to the Sustainable Development Goal (SDG) target.
+
+#### Neonatal
+
+```{r}
+world_data <- world_data %>%
+  mutate(mortality_rate_neonatal_cat = ifelse(mortality_rate_neonatal > 12, "High", "Low"))
+# Convert "Mortality_Category" to a factor
+world_data$mortality_rate_neonatal_cat <- factor(world_data$mortality_rate_neonatal_cat)
+# Relevel the factor to make "Low" the reference level
+world_data$mortality_rate_neonatal_cat <- relevel(world_data$mortality_rate_neonatal_cat, ref = "Low")
+
+```
+
+#### Under-5
+
+```{r}
+world_data <- world_data %>%
+  mutate(mortality_rate_under_5_cat = ifelse(mortality_rate_under_5 > 25, "High", "Low"))
+# Convert "Mortality_Category" to a factor
+world_data$mortality_rate_under_5_cat <- factor(world_data$mortality_rate_under_5_cat)
+# Relevel the factor to make "Low" the reference level
+world_data$mortality_rate_under_5_cat <- relevel(world_data$mortality_rate_under_5_cat, ref = "Low")
 
 ```
 
@@ -255,5 +287,5 @@ View(data)
 
 ```{r}
 # Assuming 'datatmp' is your filtered data frame
-write.csv(data, file = "bst210_project_data.csv", row.names = FALSE)
+write.csv(world_data, file = "bst210_project_data.csv", row.names = FALSE)
 ```

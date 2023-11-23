@@ -253,7 +253,6 @@ world_data$Region <- relevel(world_data$Region, ref = "Sub-Saharan Africa")
 #### Mortality categorized data
 
 ```{r}
-# Assuming you have a data frame named 'your_data' with a 'mortality' variable
 world_data <- world_data %>%
   mutate(Mortality_Category = ifelse(Mortality > 25, "High", "Low"))
 # Convert "Mortality_Category" to a factor
