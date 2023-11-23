@@ -1,19 +1,66 @@
 ---
-title: "Negative-Binomial"
+title: "Data Wrangling"
 format: html
 ---
 
 ```{r}
-install.packages("janitor")
 library(tidyverse)
+library(lubridate)
+library(tools)
 ```
 
-```{r}
-world_data <- read_csv("global_data/data.csv")
+# Data Cleaning
 
+```{r}
+world_data <- janitor::clean_names(read_csv("world_data.csv"))
+low_income <- janitor::clean_names(read_csv("low_income.csv"))
+upper_middle_income <- janitor::clean_names(read_csv("upper_middle_income.csv"))
+lower_middle_income <- janitor::clean_names(read_csv("lower_middle_income.csv"))
+high_income <- janitor::clean_names(read_csv("high_income.csv"))
+not_classified <- janitor::clean_names(read_csv("not_classified.csv"))
+
+# Assuming 'world_data' is your data frame
+View(world_data)
+
+# Use the rename function to rename columns
+world_data <- world_data %>%
+  rename(immunization = immunization_measles_percent_of_children_ages_12_23_months_sh_imm_meas, 
+         basic_sanitation = people_using_at_least_basic_sanitation_services_percent_of_population_sh_sta_bass_zs, 
+         gni = gni_per_capita_atlas_method_current_us_ny_gnp_pcap_cd,
+         year = time, 
+         co2_per_capita = co2_emissions_metric_tons_per_capita_en_atm_co2e_pc,
+         gdp_per_capita = gdp_per_capita_current_us_ny_gdp_pcap_cd,
+         pm2_5 = pm2_5_air_pollution_mean_annual_exposure_micrograms_per_cubic_meter_en_atm_pm25_mc_m3,
+         mortality_rate_infant =
+           mortality_rate_infant_per_1_000_live_births_sp_dyn_imrt_in,
+         mortality_rate_neonatal =
+           mortality_rate_neonatal_per_1_000_live_births_sh_dyn_nmrt,
+         mortality_rate_under_5 = mortality_rate_under_5_per_1_000_live_births_sh_dyn_mort,
+         health_expenditure_percent_of_gdp =
+           current_health_expenditure_percent_of_gdp_sh_xpd_chex_gd_zs, 
+         health_expenditure_per_capita =
+           current_health_expenditure_per_capita_current_us_sh_xpd_chex_pc_cd,
+         physicians = physicians_per_1_000_people_sh_med_phys_zs, 
+         community_health_workers = 
+           community_health_workers_per_1_000_people_sh_med_cmhw_p3,
+          gdp = gdp_current_us_ny_gdp_mktp_cd, 
+          population = population_total_sp_pop_totl)
+
+
+# Display the updated column names
+print(colnames(world_data))
+
+```
+
+# Region Stratification
+
+```{r}
 # Create a new column named "Region" in the dataset
-world_data$Region <- NA
-#colnames(world_data)
+world_data$region <- NA
+colnames(world_data)
+
+# Convert the "country_name" column to uppercase
+world_data$country_name <- toupper(world_data$country_name)
 
 # List of East Asia and Pacific countries
 east_asia_pacific_countries <- c("AMERICAN SAMOA", "AUSTRALIA", 
@@ -32,8 +79,9 @@ east_asia_pacific_countries <- c("AMERICAN SAMOA", "AUSTRALIA",
                                  "SAMOA", "SINGAPORE", "SOLOMON ISLANDS", 
                                  "THAILAND", "TIMOR-LESTE", "TONGA", "TUVALU", 
                                  "VANUATU", "VIET NAM")
+
 # Assign the "East Asia and Pacific" region to the specified countries
-world_data$Region[world_data$Country %in% east_asia_pacific_countries] <- 
+world_data$region[world_data$country_name %in% east_asia_pacific_countries] <- 
   "East Asia and Pacific"
 
 # List of Europe and Central Asia countries
@@ -61,8 +109,9 @@ europe_central_asia_countries <- c("ALBANIA", "ANDORRA",
                                    "SWITZERLAND", "TAJIKISTAN", "TURKIYE", 
                                    "TURKMENISTAN", "UKRAINE", 
                                    "UNITED KINGDOM", "UZBEKISTAN")
+
 # Assign the "Europe and Central Asia" region to the specified countries
-world_data$Region[world_data$Country %in% europe_central_asia_countries] <- 
+world_data$region[world_data$country_name %in% europe_central_asia_countries] <- 
   "Europe and Central Asia"
 
 
@@ -84,10 +133,10 @@ latin_america_caribbean_countries <- c(
   "TURKS AND CAICOS ISLANDS", "URUGUAY", 
   "VENEZUELA, RB", "VIRGIN ISLANDS (U.S.)"
 )
-# Assign the "Latin America and Caribbean" region to the specified countries
-world_data$Region[world_data$Country %in% latin_america_caribbean_countries] <- 
-  "Latin America and Caribbean"
 
+# Assign the "Latin America and Caribbean" region to the specified countries
+world_data$region[world_data$country_name %in% latin_america_caribbean_countries] <- 
+  "Latin America and Caribbean"
 
 # List of Middle East and North Africa countries
 middle_east_north_africa_countries <- c(
@@ -99,25 +148,25 @@ middle_east_north_africa_countries <- c(
   "UNITED ARAB EMIRATES",
   "WEST BANK AND GAZA", "YEMEN, REP."
 )
+
 # Assign the "Middle East and North Africa" region to the specified countries
-world_data$Region[world_data$Country %in% middle_east_north_africa_countries] <- 
+world_data$region[world_data$country_name %in% middle_east_north_africa_countries] <- 
   "Middle East and North Africa"
 
 # List of North American countries
 north_american_countries <- c("BERMUDA", "CANADA", "UNITED STATES")
-# Assign the "North America" region to the specified countries
-world_data$Region[world_data$Country %in% north_american_countries] <- 
-  "North America"
 
+# Assign the "North America" region to the specified countries
+world_data$region[world_data$country_name %in% north_american_countries] <- 
+  "North America"
 
 # List of South Asian countries
 south_asian_countries <- c("AFGHANISTAN", "BANGLADESH", "BHUTAN", 
                            "INDIA", "MALDIVES", "NEPAL", "PAKISTAN", "SRI LANKA")
+
 # Assign the "South Asia" region to the specified countries
-world_data$Region[world_data$Country %in% south_asian_countries] <- 
+world_data$region[world_data$country_name %in% south_asian_countries] <- 
   "South Asia"
-
-
 
 sub_saharan_africa_countries <- c(
   "ANGOLA", "BENIN", "BOTSWANA", "BURKINA FASO", "BURUNDI", 
@@ -132,68 +181,79 @@ sub_saharan_africa_countries <- c(
   "SOUTH SUDAN", "SUDAN", "TANZANIA", "TOGO", "UGANDA",
   "ZAMBIA", "ZIMBABWE"
 )
+
 # Assign the "Sub-Saharan Africa" region to the specified countries
-world_data$Region[world_data$Country %in% sub_saharan_africa_countries] <- 
+world_data$region[world_data$country_name %in% sub_saharan_africa_countries] <- 
   "Sub-Saharan Africa"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-colnames(data_low)
-
-# Use clean_names() to tidy up column names
-data_low <- janitor::clean_names(data_low)
-
-# # Use the rename function to rename columns
-# data_low <- data_low %>%
-#   rename(year = time, co2_emissions_metric_tons_per_capita = co2_emissions_metric_tons_per_capita_en_atm_co2e_pc, gdp_per_capita = gdp_per_capita_current_us_ny_gdp_pcap_cd,
-# pm2_5_air_pollution = pm2_5_air_pollution_mean_annual_exposure_micrograms_per_cubic_meter_en_atm_pm25_mc_m3,
-# mortality_rate_infant = mortality_rate_infant_per_1_000_live_births_sp_dyn_imrt_in, mortality_rate_neonatal = mortality_rate_neonatal_per_1_000_live_births_sh_dyn_nmrt, mortality_rate_under_5 = mortality_rate_under_5_per_1_000_live_births_sh_dyn_mort,
-# health_expenditure_percent_of_gdp = current_health_expenditure_percent_of_gdp_sh_xpd_chex_gd_zs, health_expenditure_per_capita = current_health_expenditure_per_capita_current_us_sh_xpd_chex_pc_cd, physicians = physicians_per_1_000_people_sh_med_phys_zs, community_health_workers = community_health_workers_per_1_000_people_sh_med_cmhw_p3,
-# gdp = gdp_current_us_ny_gdp_mktp_cd, population = population_total_sp_pop_totl)
-
-
-# Display the updated column names
-print(colnames(data_low))
-
-# Select variables
-data_low <- data_low %>%
-  filter(year %in% 2010:2019) #%>%
-  select(-c(community_health_workers, physicians, health_expenditure_per_capita, time_code, gdp))
-  
-# Change data type
-tmp <- data_low %>%
-  select(-country_name, -country_code) %>%
-  mutate(across(everything(), as.numeric))
-View(tmp)
-
-# Missing data: Drop rows with missing values and print the country names
-# Identify rows with missing values
-low_income <- rownames(tmp[!complete.cases(tmp), ])
-
-# Print the row names of rows with missing values
-cat("Row names with missing values:", rows_with_missing, "\n")
-
-# Drop rows with missing values
-your_data_frame_complete <- your_data_frame[complete.cases(your_data_frame), ]
-
-# Display the data frame with complete cases
-print(your_data_frame_complete)
+# Convert "Region" to a factor variable
+world_data$region <- as.factor(world_data$region)
+# Set "Sub-Saharan Africa" as the reference level
+world_data$region <- relevel(world_data$region, ref = "Sub-Saharan Africa")
 
 ```
+
+# Income Stratification
+
+```{r}
+# Create a factor variable indicating income level in the global dataset
+world_data <- world_data %>%
+  mutate(income_level = case_when(
+    country_name %in% toupper(low_income$country_name) ~ "Low income",
+    country_name %in% toupper(upper_middle_income$country_name) ~ "Upper middle income",
+    country_name %in% toupper(lower_middle_income$country_name) ~ "Lower middle income",
+    country_name %in% toupper(high_income$country_name) ~ "High income",
+    country_name %in% toupper(not_classified$country_name) ~ "Not classified",
+    TRUE ~ NA_character_
+  ))
+View(world_data)
+# Convert "Region" to a factor variable
+world_data$income_level <- as.factor(world_data$income_level)
+# Set "Sub-Saharan Africa" as the reference level
+world_data$income_level <- relevel(world_data$income_level, ref = "Low income")
+
+```
+
+# Variable Selection
 
 ```{r}
 
-  
+View(world_data)
+# Select variables
+data <- world_data %>%
+  filter(year %in% 2010:2019) %>%
+  select(-c(community_health_workers, physicians, health_expenditure_per_capita, time_code, gdp, gni))
+ 
+# Change data type
+data <- data %>%
+  mutate(year = year(make_date(year)), co2_per_capita = as.numeric(co2_per_capita), gdp_per_capita = as.numeric(gdp_per_capita), pm2_5 = as.numeric(pm2_5), mortality_rate_infant = as.numeric(mortality_rate_infant), mortality_rate_neonatal = as.numeric(mortality_rate_neonatal), mortality_rate_under_5 = as.numeric(mortality_rate_under_5), health_expenditure_percent_of_gdp = as.numeric(health_expenditure_percent_of_gdp), population = as.numeric(population))
+
+View(data)
 ```
 
+# Missing Data
+
+```{r}
+# Identify rows with any NA values
+rows_with_na <- data %>%
+  filter_all(any_vars(is.na(.)))
+
+# Print the countries and years with missing values
+View(rows_with_na %>% select(country_name, year))
+```
+
+This analysis was done with complete cases.
+
+```{r}
+# Identify rows without any NA values
+data <- data %>%
+  filter_all(all_vars(!is.na(.)))
+View(data)
+```
+
+#  Final Data Set
+
+```{r}
+# Assuming 'datatmp' is your filtered data frame
+write.csv(data, file = "bst210_project_data.csv", row.names = FALSE)
+```
