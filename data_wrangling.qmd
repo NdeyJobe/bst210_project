@@ -1,123 +1,15 @@
 ---
-title: "Data Formulation To fit a Logistic, Multinomial, Ordinal, Generalized Ordinal, Poisson"
-format: pdf
+title: "Negative-Binomial"
+format: html
 ---
 
-```{r, warning=FALSE, cache.comments=FALSE, message=FALSE}
-# Load packages
+```{r}
+install.packages("janitor")
 library(tidyverse)
-library(stringr)
-
-# Install the GGally package (if not already installed)
-#install.packages("GGally")
-
-# Load the GGally package
-#library(GGally)
-
 ```
-
-```{r, warning=FALSE, cache.comments=FALSE, message=FALSE}
-# Import data
-data <- read_csv("Draft_data.csv")
-```
-
-# Data Wrangling
-
-```{r, warning=FALSE}
-# Data wrangle
-# Get the column names
-column_names <- colnames(data)
-world_data <- data |> slice(1:217)
-world_data <- world_data[, !(names(world_data) 
-                             %in% c("P", "Handwash", "EAB", 
-                                    "EAS", "EAP", "EAL"))]
-
-# List of columns to exclude from conversion
-exclude_columns <- c("Region", "Country", "CC")
-
-# Use lapply to convert all other columns to numeric
-world_data[, setdiff(names(world_data), exclude_columns)] <- lapply(
-  world_data[, setdiff(names(world_data), exclude_columns)],
-  function(x) as.numeric(as.character(x))
-)
-
-```
-
-#### PM Squared
 
 ```{r}
-# Create the quadratic term for pm
-world_data$PM_squared <- world_data$PM^2
-```
-
-#### Sanitation Squared
-
-```{r}
-# Create the quadratic term for sanitation
-world_data$Sanitation_Squared<- world_data$Sanitation^2
-```
-
-#### Undernourishment Squared
-
-```{r}
-# Create the quadratic term for undernourishment
-world_data$U_Squared<- world_data$U^2
-```
-
-#### Renewable energy Squared
-
-```{r}
-# Create the quadratic term for renewable energy
-world_data$RE_Squared<- world_data$RE^2
-```
-
-#### Tobacco Squared
-
-```{r}
-# Create the quadratic term for tobacco
-world_data$Tobacco_Squared<- world_data$Tobacco^2
-```
-
-#### Immunization squared
-
-```{r}
-# Create the quadratic term for tobacco
-world_data$IMM_Squared<- world_data$IMM^2
-```
-
-#### PM categorical
-
-```{r}
-# Define the breaks and labels for the categories
-breaks <- c(0.0, 10.0, 25.0, 50.0, Inf)
-labels <- c("Low", "Moderate", "High", "Very High")
-
-# Create a categorical variable based on the specified categories
-# Create the categorical variable in your data frame
-world_data <- world_data %>%
-  mutate(pm_category = cut(PM, breaks = breaks, labels = labels, include.lowest = TRUE))
-# Relevel the factor to make "Low" the reference level
-world_data$pm_category <- relevel(world_data$pm_category, ref = "Low")
-```
-
-#### PM ordinal
-
-```{r}
-# Define the levels and their order
-levels_order <- c("Low", "Moderate", "High", "Very High")
-
-# Convert the variable to a factor
-world_data$pm_ordinal <- factor(world_data$pm_category, 
-                                levels = levels_order, ordered = TRUE)
-
-```
-
-#### Region categorized Data
-
-```{r}
-# Assuming your dataset is named 'df' and the column is 'ColumnName'
-world_data$Country <- str_to_upper(world_data$Country)
-#world_data$Country
+world_data <- read_csv("global_data/data.csv")
 
 # Create a new column named "Region" in the dataset
 world_data$Region <- NA
@@ -244,46 +136,64 @@ sub_saharan_africa_countries <- c(
 world_data$Region[world_data$Country %in% sub_saharan_africa_countries] <- 
   "Sub-Saharan Africa"
 
-# Convert "Region" to a factor variable
-world_data$Region <- as.factor(world_data$Region)
-# Set "Sub-Saharan Africa" as the reference level
-world_data$Region <- relevel(world_data$Region, ref = "Sub-Saharan Africa")
+
+
+
+
+
+
+
+
+
+
+
+
+
+colnames(data_low)
+
+# Use clean_names() to tidy up column names
+data_low <- janitor::clean_names(data_low)
+
+# # Use the rename function to rename columns
+# data_low <- data_low %>%
+#   rename(year = time, co2_emissions_metric_tons_per_capita = co2_emissions_metric_tons_per_capita_en_atm_co2e_pc, gdp_per_capita = gdp_per_capita_current_us_ny_gdp_pcap_cd,
+# pm2_5_air_pollution = pm2_5_air_pollution_mean_annual_exposure_micrograms_per_cubic_meter_en_atm_pm25_mc_m3,
+# mortality_rate_infant = mortality_rate_infant_per_1_000_live_births_sp_dyn_imrt_in, mortality_rate_neonatal = mortality_rate_neonatal_per_1_000_live_births_sh_dyn_nmrt, mortality_rate_under_5 = mortality_rate_under_5_per_1_000_live_births_sh_dyn_mort,
+# health_expenditure_percent_of_gdp = current_health_expenditure_percent_of_gdp_sh_xpd_chex_gd_zs, health_expenditure_per_capita = current_health_expenditure_per_capita_current_us_sh_xpd_chex_pc_cd, physicians = physicians_per_1_000_people_sh_med_phys_zs, community_health_workers = community_health_workers_per_1_000_people_sh_med_cmhw_p3,
+# gdp = gdp_current_us_ny_gdp_mktp_cd, population = population_total_sp_pop_totl)
+
+
+# Display the updated column names
+print(colnames(data_low))
+
+# Select variables
+data_low <- data_low %>%
+  filter(year %in% 2010:2019) #%>%
+  select(-c(community_health_workers, physicians, health_expenditure_per_capita, time_code, gdp))
+  
+# Change data type
+tmp <- data_low %>%
+  select(-country_name, -country_code) %>%
+  mutate(across(everything(), as.numeric))
+View(tmp)
+
+# Missing data: Drop rows with missing values and print the country names
+# Identify rows with missing values
+low_income <- rownames(tmp[!complete.cases(tmp), ])
+
+# Print the row names of rows with missing values
+cat("Row names with missing values:", rows_with_missing, "\n")
+
+# Drop rows with missing values
+your_data_frame_complete <- your_data_frame[complete.cases(your_data_frame), ]
+
+# Display the data frame with complete cases
+print(your_data_frame_complete)
 
 ```
-
-#### Mortality categorized data
 
 ```{r}
-# Assuming you have a data frame named 'your_data' with a 'mortality' variable
-world_data <- world_data %>%
-  mutate(Mortality_Category = ifelse(Mortality > 25, "High", "Low"))
-# Convert "Mortality_Category" to a factor
-world_data$Mortality_Category <- factor(world_data$Mortality_Category)
-# Relevel the factor to make "Low" the reference level
-world_data$Mortality_Category <- relevel(world_data$Mortality_Category, ref = "Low")
+
+  
 ```
 
-#### Mortality ordinal
-
-```{r}
-# Define the levels and their order
-levels_order <- c("Low", "High")
-
-# Convert the variable to a factor
-world_data$Mortality_Ordinal <- 
-  factor(world_data$Mortality_Category, 
-         levels = levels_order, ordered = TRUE)
-```
-
-# Final Data
-
-```{r}
-# Filter the data to keep only countries with GDP greater than 3400
-world_data <- world_data %>% filter(GDP < 33500)
-
-# Removes rows with missing values
-world_data <- na.omit(world_data)
-
-# Save your data frame to a CSV file
-write.csv(world_data, "final_bst210_project_data.csv", row.names = FALSE)
-```
