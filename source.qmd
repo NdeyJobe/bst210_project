@@ -14,16 +14,45 @@ if (!require("MASS")) {
 
 ```{r}
 data <- read_csv("data/bst210_project_data.csv")
+View(data)
 ```
 
 
-```{r}
-mod.neonatal <- glm.nb(formula = mortality_rate_neonatal ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization, data = data)
-summary(mod.neonatal) 
+```{r, warning=FALSE}
+years <- unique(data$year)  # Get unique years in your data
+
+# Create an empty list to store model summaries
+model_summaries <- list()
+
+# Loop through each year and fit the model
+for (year in years) {
+  subset_data <- filter(data, year == year)  # Subset data for the current year
+  mod_neonatal <- glm.nb(
+    formula = mortality_rate_neonatal ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization,
+    data = subset_data
+  )
+  summary_info <- summary(mod_neonatal)
+  model_summaries[[as.character(year)]] <- summary_info
+}
+
+# Print or further analyze the model summaries
+print(model_summaries)
 ```
 
-```{r}
-mod.under.five <- glm.nb(formula = mortality_rate_under_5 ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization, data = data)
-summary(mod.five) 
+```{r, warning=FALSE}
+# Group by year and apply the model
+models_by_year <- data %>%
+  group_by(year) %>%
+  do(model = glm.nb(formula = mortality_rate_under_5 ~ co2_per_capita + pm2_5 + health_expenditure_percent_of_gdp + income_level + region + basic_sanitation + immunization, data = .))
+
+# Display summaries for each year
+summaries_by_year <- models_by_year %>%
+  summarise(model_summary = list(summary(model)))
+
+# Accessing individual summaries for each year
+for (i in 1:nrow(summaries_by_year)) {
+  print(paste("Year:", summaries_by_year$year[i]))
+  print(summaries_by_year$model_summary[[i]])
+}
 ```
 
