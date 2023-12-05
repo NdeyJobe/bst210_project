@@ -4,3 +4,5 @@ data_wrangling.qmd: This is the data wrangling code that cleaned the raw data se
 source.qmd: This is the file that contains the negative binomial model and all other models we will include in our final paper.
 
 achieve: every other work that was done in the exploration stage.
+
+data/bst210_project_data.csv: use this data set
