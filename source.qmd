@@ -17,6 +17,9 @@ data <- read_csv("data/bst210_project_data.csv")
 View(data)
 ```
 
+### Negative Binomial Models
+
+1.  mortality_rate_neonatal:
 
 ```{r, warning=FALSE}
 years <- unique(data$year)  # Get unique years in your data
@@ -39,6 +42,8 @@ for (year in years) {
 print(model_summaries)
 ```
 
+2.  mortality_rate_under_5:
+
 ```{r, warning=FALSE}
 # Group by year and apply the model
 models_by_year <- data %>%
@@ -55,4 +60,3 @@ for (i in 1:nrow(summaries_by_year)) {
   print(summaries_by_year$model_summary[[i]])
 }
 ```
-
