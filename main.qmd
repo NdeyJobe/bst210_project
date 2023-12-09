@@ -27,7 +27,7 @@ Unadjusted
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 # Without offset
 under_5_unadjusted <- glm.nb(
-  formula = mortality_rate_neonatal ~ co2_per_capita ,
+  formula = mortality_rate_under_5 ~ co2_per_capita ,
   data = subset_data_2019
 )
 
@@ -41,7 +41,7 @@ Adjusted
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 under_5_adjusted <- glm.nb(
-  formula = mortality_rate_neonatal ~ co2_per_capita + pm2_5 + gdp_per_capita + health_expenditure_percent_of_gdp + basic_sanitation + immunization,
+  formula = mortality_rate_under_5 ~ co2_per_capita + pm2_5 + gdp_per_capita + health_expenditure_percent_of_gdp + basic_sanitation + immunization,
   data = subset_data_2019
 )
 colnames(subset_data_2019)
