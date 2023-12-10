@@ -274,7 +274,15 @@ Neonatal mortality count
 ```{r}
 data <- data %>%
   rowwise() %>%
-  mutate(mortality_count_neonatal = as.numeric(mortality_rate_neonatal) * as.numeric(birth_rate) * as.numeric(population))
+  mutate(mortality_count_neonatal = as.numeric(mortality_rate_neonatal) * as.numeric(birth_rate) * as.numeric(population)) |> mutate(live_births = as.numeric(birth_rate) * population)
+View(data)
+
+
+
+subset_data_2019 <- data1 |>
+  filter(income_level %in% c("Low income", "Lower middle income")) |> 
+  filter(year == 2019) |> mutate(co2_total = co2_per_capita*population )
+
 
 ```
 
@@ -286,7 +294,7 @@ rows_with_na <- data %>%
   filter_all(any_vars(is.na(.)))
 
 # Print the countries and years with missing values
-View(rows_with_na %>% select(country_name, year))
+#View(rows_with_na %>% select(country_name, year))
 ```
 
 This analysis was done with complete cases.
@@ -302,5 +310,5 @@ View(data)
 
 ```{r}
 # Assuming 'datatmp' is your filtered data frame
-write.csv(world_data, file = "bst210_project_data.csv", row.names = FALSE)
+write.csv(data, file = "final_data.csv", row.names = FALSE)
 ```

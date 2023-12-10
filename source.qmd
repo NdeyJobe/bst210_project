@@ -13,13 +13,29 @@ if (!require("MASS")) {
 }
 ```
 
-```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
-data <- read_csv("data/bst210_project_data.csv")
-subset_data_2019 <- data |>
-  filter(income_level %in% c("Low income", "Lower middle income")) |> 
-  filter(year == 2019)
+```{r}
+data1 <- read_csv("data/Final_data.csv")
+data2 <- read_csv("newest_newest.csv")
 
-subset_data_2019$co2_produced <- subset_data_2019$co2_per_capita * subset_data_2019$population
+# Check if elements in data2 are present in data1
+index <- data1 %in% data2
+
+# Subset data1 based on the index
+subset_data1 <- data1[index, ]
+
+# Print the subsetted data1
+print(subset_data1)
+
+```
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+subset_data_2019 <- data1 |>
+  filter(income_level %in% c("Low income", "Lower middle income")) |> 
+  filter(year == 2019) |> mutate(co2_total = co2_per_capita*population )
+
+subset_data_2019$CO2_produced <- subset_data_2019$co2_per_capita*subset_data_2019$population
+unique(subset_data_2019$income_level)
+
 ```
 
 Unadjusted
@@ -27,12 +43,12 @@ Unadjusted
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 # Without offset
 under_5_unadjusted <- glm.nb(
-  formula = mortality_rate_neonatal ~ co2_per_capita ,
+  formula = mortality_count_neonatal ~ pm2_5, offset(log(live_births)),
   data = subset_data_2019
 )
 
 # Display the summary information for the model
-tidy(under_5_unadjusted, exponentiate = TRUE)
+tidy(under_5_unadjusted, exponentiate = TRUE, conf.int = TRUE)
 
 
 ```
@@ -41,11 +57,23 @@ Adjusted
 
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 under_5_adjusted <- glm.nb(
-  formula = mortality_rate_neonatal ~ co2_per_capita + pm2_5 + gdp_per_capita + health_expenditure_percent_of_gdp + basic_sanitation + immunization,
+  formula = mortality_count_under_5 ~ pm2_5 + co2_per_capita + immunization + gdp_per_capita  + basic_sanitation + health_expenditure_percent_of_gdp, offset(log(live_births)),
   data = subset_data_2019
 )
-colnames(subset_data_2019)
 # Display the summary information for the model
-tidy(under_5_adjusted, exponentiate = TRUE)
+tidy(under_5_adjusted, exponentiate = TRUE, conf.int = TRUE)
+
+
+#sum(is.na(subset_data_2019$co2_per_capita))
+
+```
+
+```{r}
+under_5_adjusted0 <- glm.nb(
+  formula = pm2_5 ~  co2_total, 
+  data = subset_data_2019
+)
+# Display the summary information for the model
+tidy(under_5_adjusted0, exponentiate = TRUE, conf.int = TRUE)
 
 ```
